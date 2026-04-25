@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wada Sanzō Colour Guide</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #f5f2ed;
+    --surface: #edeae4;
+    --border: #d6d2cb;
+    --text: #1c1917;
+    --text-muted: #6b6560;
+    --accent: #1c1917;
+    --panel-w: 520px;
+    --radius: 4px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  header {
+    padding: 28px 32px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  header h1 {
+    font-size: 20px;
+    font-weight: normal;
+    letter-spacing: 0.02em;
+  }
+
+  header h1 span {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-left: 8px;
+    font-style: italic;
+  }
+
+  /* ── Controls ── */
+  .controls {
+    padding: 14px 32px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    background: var(--bg);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .controls label {
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-right: 4px;
+  }
+
+  .controls select {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 13px;
+    padding: 5px 28px 5px 10px;
+    border-radius: var(--radius);
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b6560'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    cursor: pointer;
+  }
+
+  .controls select:focus { outline: 1px solid var(--text); }
+
+  .control-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .count-badge {
+    margin-left: auto;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* ── Grid ── */
+  .grid-wrapper {
+    padding: 24px 32px;
+    transition: padding-right 0.35s ease;
+  }
+
+  .grid-wrapper.panel-open {
+    padding-right: calc(var(--panel-w) + 32px);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+  }
+
+  /* ── Color Card ── */
+  .card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    cursor: pointer;
+    transition: box-shadow 0.15s, transform 0.15s;
+  }
+
+  .card:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+  }
+
+  .card.active {
+    outline: 2px solid var(--text);
+    outline-offset: 2px;
+  }
+
+  .card-swatch {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+  }
+
+  .card-body {
+    padding: 10px 12px 12px;
+  }
+
+  .card-name {
+    font-size: 13px;
+    font-weight: normal;
+    line-height: 1.3;
+    margin-bottom: 8px;
+  }
+
+  .card-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  .score-bar-track {
+    width: 100%;
+    height: 3px;
+    background: var(--surface);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .score-bar-fill {
+    height: 100%;
+    background: var(--text);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+  }
+
+  /* ── Side Panel ── */
+  .panel-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+  }
+
+  .panel-backdrop.open { display: block; }
+
+  .panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: var(--panel-w);
+    height: 100vh;
+    background: var(--bg);
+    border-left: 1px solid var(--border);
+    overflow-y: auto;
+    z-index: 50;
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .panel.open { transform: translateX(0); }
+
+  .panel-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-size: 16px;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    font-family: inherit;
+  }
+
+  .panel-close:hover { background: var(--surface); }
+
+  /* Panel sections */
+  .panel-hero {
+    width: 100%;
+    aspect-ratio: 16 / 7;
+  }
+
+  .panel-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .panel-title {
+    font-size: 22px;
+    font-weight: normal;
+    margin-bottom: 8px;
+    padding-right: 40px;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .tag {
+    font-size: 11px;
+    padding: 3px 8px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--text-muted);
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  .tag.hex-tag {
+    font-family: 'Courier New', monospace;
+    text-transform: none;
+    letter-spacing: 0.05em;
+  }
+
+  .panel-section {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .panel-section:last-child { border-bottom: none; }
+
+  .section-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+  }
+
+  /* Versatility section */
+  .score-display {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .score-number {
+    font-size: 36px;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .score-rank {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .compat-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 48px;
+    margin-top: 10px;
+  }
+
+  .compat-bar {
+    flex: 1;
+    background: var(--text);
+    border-radius: 1px 1px 0 0;
+    min-width: 4px;
+    opacity: 0.7;
+    transition: opacity 0.15s;
+    cursor: default;
+    position: relative;
+  }
+
+  .compat-bar:hover { opacity: 1; }
+
+  /* Combinations section */
+  .combo-list { display: flex; flex-direction: column; gap: 12px; }
+
+  .combo-item {}
+
+  .combo-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .combo-strip {
+    display: flex;
+    border-radius: var(--radius);
+    overflow: hidden;
+    height: 48px;
+  }
+
+  .combo-swatch {
+    flex: 1;
+    cursor: pointer;
+    transition: flex 0.2s ease;
+    position: relative;
+  }
+
+  .combo-swatch:hover { flex: 1.5; }
+
+  .combo-swatch-tip {
+    display: none;
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.75);
+    color: #fff;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 2px;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .combo-swatch:hover .combo-swatch-tip { display: block; }
+
+  /* Close matches section */
+  .close-matches-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .match-card {
+    cursor: pointer;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: box-shadow 0.15s;
+  }
+
+  .match-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+
+  .match-swatch {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+  }
+
+  .match-info {
+    padding: 6px 8px;
+    background: #fff;
+  }
+
+  .match-name {
+    font-size: 11px;
+    line-height: 1.3;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .match-de {
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  /* Error state */
+  .error-state {
+    padding: 80px 32px;
+    text-align: center;
+    color: var(--text-muted);
+  }
+
+  .error-state h2 {
+    font-size: 18px;
+    font-weight: normal;
+    margin-bottom: 12px;
+    color: var(--text);
+  }
+
+  .error-state code {
+    display: inline-block;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 8px 16px;
+    border-radius: var(--radius);
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    margin-top: 10px;
+    color: var(--text);
+  }
+
+  /* Empty state */
+  .empty-state {
+    grid-column: 1 / -1;
+    padding: 60px 0;
+    text-align: center;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  /* Tooltip for compat bars */
+  .bar-tooltip {
+    position: fixed;
+    background: var(--text);
+    color: var(--bg);
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: var(--radius);
+    pointer-events: none;
+    z-index: 200;
+    white-space: nowrap;
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Wada Sanzō Colour Guide <span>配色総鑑, 1934</span></h1>
+</header>
+
+<div class="controls" id="controls">
+  <div class="control-group">
+    <label for="sort-select">Sort</label>
+    <select id="sort-select">
+      <option value="score">Versatility Score</option>
+      <option value="connections">Connection Count</option>
+      <option value="alpha">Alphabetical</option>
+    </select>
+  </div>
+  <div class="control-group">
+    <label for="filter-type">Type</label>
+    <select id="filter-type">
+      <option value="">All types</option>
+      <option value="dyad">Dyad</option>
+      <option value="triad">Triad</option>
+      <option value="tetrad">Tetrad</option>
+    </select>
+  </div>
+  <div class="control-group">
+    <label for="filter-hue">Hue</label>
+    <select id="filter-hue">
+      <option value="">All hues</option>
+      <option value="red">Red</option>
+      <option value="orange">Orange</option>
+      <option value="yellow">Yellow</option>
+      <option value="green">Green</option>
+      <option value="teal">Teal</option>
+      <option value="blue">Blue</option>
+      <option value="purple">Purple</option>
+      <option value="neutral">Neutral</option>
+    </select>
+  </div>
+  <span class="count-badge" id="count-badge"></span>
+</div>
+
+<div class="grid-wrapper" id="grid-wrapper">
+  <div class="grid" id="grid"></div>
+</div>
+
+<!-- Side panel -->
+<div class="panel-backdrop" id="panel-backdrop"></div>
+<div class="panel" id="panel" role="dialog" aria-modal="true" aria-label="Colour detail">
+  <button class="panel-close" id="panel-close" aria-label="Close">&times;</button>
+  <div id="panel-content"></div>
+</div>
+
+<div class="bar-tooltip" id="bar-tooltip"></div>
+
+<script>
+// ── Colour math ──────────────────────────────────────────────────────────────
+
+function rgbToXyz(r, g, b) {
+  // Linearise
+  function lin(c) {
+    c /= 255;
+    return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  }
+  const rl = lin(r), gl = lin(g), bl = lin(b);
+  // D65 matrix
+  return [
+    rl * 0.4124564 + gl * 0.3575761 + bl * 0.1804375,
+    rl * 0.2126729 + gl * 0.7151522 + bl * 0.0721750,
+    rl * 0.0193339 + gl * 0.1191920 + bl * 0.9503041,
+  ];
+}
+
+function xyzToLab(x, y, z) {
+  // D65 reference white
+  const xn = 0.95047, yn = 1.00000, zn = 1.08883;
+  function f(t) {
+    return t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116;
+  }
+  const fx = f(x / xn), fy = f(y / yn), fz = f(z / zn);
+  return [116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)];
+}
+
+function rgbToLab(r, g, b) {
+  return xyzToLab(...rgbToXyz(r, g, b));
+}
+
+function deltaE(lab1, lab2) {
+  const dL = lab1[0] - lab2[0];
+  const da = lab1[1] - lab2[1];
+  const db = lab1[2] - lab2[2];
+  return Math.sqrt(dL * dL + da * da + db * db);
+}
+
+function rgbToHsl(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  if (max === min) return [0, 0, l];
+  const d = max - min;
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  let h;
+  switch (max) {
+    case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+    case g: h = ((b - r) / d + 2) / 6; break;
+    case b: h = ((r - g) / d + 4) / 6; break;
+  }
+  return [h * 360, s, l];
+}
+
+function getHueFamily(r, g, b) {
+  const [h, s, l] = rgbToHsl(r, g, b);
+  if (s < 0.15 || l > 0.92 || l < 0.08) return 'neutral';
+  if (h < 30 || h >= 330) return 'red';
+  if (h < 60) return 'orange';
+  if (h < 90) return 'yellow';
+  if (h < 150) return 'green';
+  if (h < 210) return 'teal';
+  if (h < 270) return 'blue';
+  return 'purple';
+}
+
+// ── Data processing ──────────────────────────────────────────────────────────
+
+function processColors(rawColors) {
+  // Index colors by index
+  const byIndex = {};
+  rawColors.forEach(c => { byIndex[c.index] = c; });
+
+  // Reconstruct combinations: combId -> Set of color indexes
+  const combMap = {}; // combId -> [colorIndex, ...]
+  rawColors.forEach(c => {
+    c.combinations.forEach(combId => {
+      if (!combMap[combId]) combMap[combId] = [];
+      combMap[combId].push(c.index);
+    });
+  });
+
+  // Combination type
+  function comboType(size) {
+    if (size === 2) return 'dyad';
+    if (size === 3) return 'triad';
+    if (size === 4) return 'tetrad';
+    return `${size}-color`;
+  }
+
+  // Build processed color objects
+  const colors = rawColors.map(c => {
+    const [r, g, b] = c.rgb_array;
+    const lab = rgbToLab(r, g, b);
+    const hue = getHueFamily(r, g, b);
+
+    // Compatible colors: union of all colors in all combos, minus self
+    const compatSet = new Set();
+    c.combinations.forEach(combId => {
+      combMap[combId].forEach(idx => {
+        if (idx !== c.index) compatSet.add(idx);
+      });
+    });
+
+    const compatColors = [...compatSet].map(idx => byIndex[idx]).filter(Boolean);
+    const score = compatColors.length === 0
+      ? 0
+      : compatColors.reduce((sum, cc) => sum + cc.use_count, 0) / compatColors.length;
+
+    // Gather combo details for this color
+    const combos = c.combinations.map(combId => ({
+      id: combId,
+      type: comboType(combMap[combId].length),
+      memberIndexes: combMap[combId],
+    }));
+
+    // Determine combo types this color participates in
+    const comboTypes = new Set(combos.map(co => co.type));
+
+    return {
+      index: c.index,
+      name: c.name,
+      slug: c.slug,
+      hex: c.hex,
+      rgb: c.rgb_array,
+      lab,
+      hue,
+      use_count: c.use_count,
+      combinations: combos,
+      comboTypes,
+      compatColors,
+      score,
+    };
+  });
+
+  // Compute ranks by score
+  const sorted = [...colors].sort((a, b) =>
+    b.score - a.score || b.use_count - a.use_count
+  );
+  sorted.forEach((c, i) => { c.rank = i + 1; });
+
+  return { colors, byIndex: Object.fromEntries(colors.map(c => [c.index, c])), total: colors.length };
+}
+
+// ── Rendering ────────────────────────────────────────────────────────────────
+
+let allColors = [];
+let colorMap = {};
+let totalColors = 0;
+let maxScore = 1;
+let activeIndex = null;
+
+function buildCard(c) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.dataset.index = c.index;
+
+  const pct = maxScore > 0 ? (c.score / maxScore) * 100 : 0;
+
+  card.innerHTML = `
+    <div class="card-swatch" style="background:${c.hex}"></div>
+    <div class="card-body">
+      <div class="card-name">${c.name}</div>
+      <div class="card-meta">
+        <span>Score ${c.score.toFixed(2)}</span>
+        <span>${c.use_count} combo${c.use_count !== 1 ? 's' : ''}</span>
+      </div>
+      <div class="score-bar-track">
+        <div class="score-bar-fill" style="width:${pct}%"></div>
+      </div>
+    </div>
+  `;
+
+  card.addEventListener('click', () => openPanel(c.index));
+  return card;
+}
+
+function getFilteredSorted() {
+  const sort = document.getElementById('sort-select').value;
+  const filterType = document.getElementById('filter-type').value;
+  const filterHue = document.getElementById('filter-hue').value;
+
+  let list = allColors.filter(c => {
+    if (filterHue && c.hue !== filterHue) return false;
+    if (filterType && !c.comboTypes.has(filterType)) return false;
+    return true;
+  });
+
+  if (sort === 'score') {
+    list.sort((a, b) => b.score - a.score || b.use_count - a.use_count);
+  } else if (sort === 'connections') {
+    list.sort((a, b) => b.use_count - a.use_count || b.score - a.score);
+  } else {
+    list.sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  return list;
+}
+
+function renderGrid() {
+  const grid = document.getElementById('grid');
+  const badge = document.getElementById('count-badge');
+  grid.innerHTML = '';
+
+  const list = getFilteredSorted();
+  badge.textContent = `${list.length} of ${totalColors} colours`;
+
+  if (list.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'empty-state';
+    empty.textContent = 'No colours match the current filters.';
+    grid.appendChild(empty);
+    return;
+  }
+
+  const frag = document.createDocumentFragment();
+  list.forEach(c => {
+    const card = buildCard(c);
+    if (c.index === activeIndex) card.classList.add('active');
+    frag.appendChild(card);
+  });
+  grid.appendChild(frag);
+}
+
+// ── Panel ─────────────────────────────────────────────────────────────────────
+
+function openPanel(colorIndex) {
+  activeIndex = colorIndex;
+  const c = colorMap[colorIndex];
+  if (!c) return;
+
+  document.getElementById('grid-wrapper').classList.add('panel-open');
+  document.getElementById('panel-backdrop').classList.add('open');
+  document.getElementById('panel').classList.add('open');
+  document.getElementById('panel').scrollTop = 0;
+
+  // Update active card highlight
+  document.querySelectorAll('.card').forEach(el => {
+    el.classList.toggle('active', parseInt(el.dataset.index) === colorIndex);
+  });
+
+  renderPanelContent(c);
+}
+
+function closePanel() {
+  activeIndex = null;
+  document.getElementById('grid-wrapper').classList.remove('panel-open');
+  document.getElementById('panel-backdrop').classList.remove('open');
+  document.getElementById('panel').classList.remove('open');
+  document.querySelectorAll('.card').forEach(el => el.classList.remove('active'));
+}
+
+function renderPanelContent(c) {
+  const maxCompatCount = c.compatColors.length > 0
+    ? Math.max(...c.compatColors.map(cc => cc.use_count))
+    : 1;
+
+  // Close matches: ΔE 5–30, nearest 9
+  const matches = allColors
+    .filter(other => other.index !== c.index)
+    .map(other => ({ color: other, de: deltaE(c.lab, other.lab) }))
+    .filter(m => m.de >= 5 && m.de <= 30)
+    .sort((a, b) => a.de - b.de)
+    .slice(0, 9);
+
+  // Build compatible colors bar chart HTML (up to 40 bars)
+  const chartColors = c.compatColors.slice(0, 40);
+  const chartHtml = chartColors.length > 0
+    ? `<div class="compat-chart" id="compat-chart">
+        ${chartColors.map(cc => {
+          const h = maxCompatCount > 0 ? Math.max(6, (cc.use_count / maxCompatCount) * 48) : 6;
+          return `<div class="compat-bar" style="height:${h}px;background:${cc.hex}" data-name="${cc.name}" data-count="${cc.use_count}"></div>`;
+        }).join('')}
+      </div>`
+    : '<p style="font-size:12px;color:var(--text-muted);font-style:italic">No compatible colours.</p>';
+
+  // Combinations HTML
+  const combosHtml = c.combinations.map(combo => {
+    const swatches = combo.memberIndexes.map(idx => {
+      const m = colorMap[idx];
+      if (!m) return '';
+      const isSelf = idx === c.index;
+      return `<div class="combo-swatch${isSelf ? ' self' : ''}"
+        style="background:${m.hex}"
+        data-index="${idx}"
+        title="${m.name}">
+        <span class="combo-swatch-tip">${m.name}</span>
+      </div>`;
+    }).join('');
+
+    return `<div class="combo-item">
+      <div class="combo-label">#${combo.id} &middot; ${combo.type}</div>
+      <div class="combo-strip">${swatches}</div>
+    </div>`;
+  }).join('');
+
+  // Close matches HTML
+  const matchesHtml = matches.length > 0
+    ? `<div class="close-matches-grid">
+        ${matches.map(m => `
+          <div class="match-card" data-index="${m.color.index}">
+            <div class="match-swatch" style="background:${m.color.hex}"></div>
+            <div class="match-info">
+              <div class="match-name" title="${m.color.name}">${m.color.name}</div>
+              <div class="match-de">&Delta;E ${m.de.toFixed(1)}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>`
+    : '<p style="font-size:12px;color:var(--text-muted);font-style:italic">No close matches in &Delta;E 5–30 range.</p>';
+
+  document.getElementById('panel-content').innerHTML = `
+    <div class="panel-hero" style="background:${c.hex}"></div>
+    <div class="panel-header">
+      <div class="panel-title">${c.name}</div>
+      <div class="tags">
+        <span class="tag hex-tag">${c.hex}</span>
+        <span class="tag">${c.hue}</span>
+        <span class="tag">${c.use_count} combo${c.use_count !== 1 ? 's' : ''}</span>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="section-title">Versatility Score</div>
+      <div class="score-display">
+        <span class="score-number">${c.score.toFixed(2)}</span>
+        <span class="score-rank">Rank ${c.rank} of ${totalColors}</span>
+      </div>
+      ${chartHtml}
+    </div>
+
+    <div class="panel-section">
+      <div class="section-title">All Combinations (${c.combinations.length})</div>
+      <div class="combo-list">${combosHtml}</div>
+    </div>
+
+    <div class="panel-section">
+      <div class="section-title">Close Matches &Delta;E 5–30</div>
+      ${matchesHtml}
+    </div>
+  `;
+
+  // Bind combo swatch clicks
+  document.querySelectorAll('.combo-swatch[data-index]').forEach(el => {
+    el.addEventListener('click', () => {
+      const idx = parseInt(el.dataset.index);
+      if (idx !== c.index) openPanel(idx);
+    });
+  });
+
+  // Bind match card clicks
+  document.querySelectorAll('.match-card[data-index]').forEach(el => {
+    el.addEventListener('click', () => {
+      openPanel(parseInt(el.dataset.index));
+    });
+  });
+
+  // Bind compat bar tooltips
+  const tooltip = document.getElementById('bar-tooltip');
+  document.querySelectorAll('.compat-bar').forEach(el => {
+    el.addEventListener('mouseenter', (e) => {
+      tooltip.textContent = `${el.dataset.name} (${el.dataset.count})`;
+      tooltip.style.display = 'block';
+    });
+    el.addEventListener('mousemove', (e) => {
+      tooltip.style.left = (e.clientX + 12) + 'px';
+      tooltip.style.top = (e.clientY - 24) + 'px';
+    });
+    el.addEventListener('mouseleave', () => {
+      tooltip.style.display = 'none';
+    });
+  });
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+
+async function init() {
+  let raw;
+  try {
+    const res = await fetch('colors.json');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    raw = await res.json();
+  } catch (e) {
+    document.getElementById('grid-wrapper').innerHTML = `
+      <div class="error-state">
+        <h2>Could not load colours.json</h2>
+        <p>This page must be served over HTTP. Try:</p>
+        <code>python -m http.server 8000</code>
+        <p style="margin-top:10px">Then open <strong>http://localhost:8000</strong></p>
+      </div>`;
+    return;
+  }
+
+  const { colors, byIndex, total } = processColors(raw.colors);
+  allColors = colors;
+  colorMap = byIndex;
+  totalColors = total;
+  maxScore = Math.max(...colors.map(c => c.score), 1);
+
+  renderGrid();
+
+  // Controls
+  ['sort-select', 'filter-type', 'filter-hue'].forEach(id => {
+    document.getElementById(id).addEventListener('change', renderGrid);
+  });
+
+  // Panel close
+  document.getElementById('panel-close').addEventListener('click', closePanel);
+  document.getElementById('panel-backdrop').addEventListener('click', closePanel);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && activeIndex !== null) closePanel();
+  });
+}
+
+init();
+</script>
+</body>
+</html>
